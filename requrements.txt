@@ -1,0 +1,33 @@
+# BOT REQUIREMENTS
+Pillow
+selenium==4.2.0
+
+# UC APIs REQUIREMENTS
+click
+ldap3
+grpcio
+pytest
+urllib3
+pyshark
+aiohttp
+requests
+pydantic
+xmltodict
+dicttoxml
+sqlalchemy
+websockets
+pytest-faker
+grpcio-tools
+pytest-check
+pytest-xdist
+google-crc32c
+allure-pytest
+testresources
+psycopg2-binary
+pytest-testrail
+protobuf==3.20.0
+paho-mqtt==1.6.1
+python-ldap-test
+teamcity-messages
+pytest-rerunfailures
+allure-python-commons
