@@ -89,8 +89,10 @@ def process_chats_2(chat_config, session_id, my_user_id):
                                      ip=chat_config['IP_UC_ACCESS_LAYER_WEB'], port=chat_config['PORT_UC_ACCESS_LAYER_WEB'],
                                      grafana=grafana)['status_code']
         print_if_debug(f"{res} for {', '.join([str(i) for i in chat_config['URLS']])} {chat_config['CHATS']}", end='\n\n')
+        return
     except Exception:
         crash_logging()
+        return
 
 
 def process_chats(objects, first_iteration, db=False):
@@ -109,7 +111,7 @@ def process_chats(objects, first_iteration, db=False):
             if check == True:
                 session_id, my_user_id = login(ip, port, user, password, debug=debug)
                 update_timers(now, obj['time'])
-                threading.Thread(target=process_chats_2, args=(obj, session_id, my_user_id)).start()
+                threading.Thread(target=process_chats_2, args=(obj, session_id, my_user_id), daemon=True).start()
             elif check == False:
                 update_conditions(now, obj['time'])
 
