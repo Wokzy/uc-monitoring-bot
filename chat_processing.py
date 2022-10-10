@@ -1,4 +1,5 @@
 import time
+import random
 import threading
 import photographer
 
@@ -7,12 +8,14 @@ from PIL import Image
 from work_with_uc import login
 from api.prew_image import prevImage
 from work_with_uc import upload_file
+from models.uc_api.uc_api_models import ChatEvent
+from api.group_chat_method import ChatApi
 from crash_logging import crash_logging
 from datetime import datetime, timedelta
-from constants import SCREENSHOTFILENAME, SCREENSHOTFILETYPE
+from constants import *
 
 
-def make_image_and_send_it(session_id, my_user_id, chats, urls, grafana=None):
+def make_image_and_send_it(session_id, my_user_id, chats, urls, ip, port, grafana=None):
     print_if_debug(f'Getting image from {urls}')
     photographer.make_screen(urls, grafana=grafana)
     print_if_debug('Image got. Sending...')
@@ -36,9 +39,9 @@ def make_image_and_send_it(session_id, my_user_id, chats, urls, grafana=None):
 
     print_if_debug('thumbnail made', 'full')
 
-    attachment_id, file_size = upload_file(session_id, file_path=f"{SCREENSHOTPATH}/{SCREENSHOTFILENAME}")
+    attachment_id, file_size = upload_file(session_id, file_path=f"{SCREENSHOTPATH}/{SCREENSHOTFILENAME}", ip=ip, port=port)
     print_if_debug('image uploaded', 'full')
-    upload_file(session_id, file_path=f"{SCREENSHOTPATH}/{thumbnail_filename}", mediasize='m',
+    upload_file(session_id, file_path=f"{SCREENSHOTPATH}/{thumbnail_filename}", ip=ip, port=port, mediasize='m',
                 attachment_id=attachment_id)
     print_if_debug('thumbnail uploaded', 'full')
 
@@ -48,7 +51,7 @@ def make_image_and_send_it(session_id, my_user_id, chats, urls, grafana=None):
         else:
             plain_text = ''
 
-        chat_id = int(chat['chat_id'])
+        chat_id = int(chat['ID'])
 
         message = {"uuid": random.randint(1000, 99999), "sender_id": my_user_id, "chat_id": chat_id,
                    "chat_type": chat['type'], "type": "IMAGE", "plaintext": plain_text,
@@ -62,7 +65,7 @@ def make_image_and_send_it(session_id, my_user_id, chats, urls, grafana=None):
     send_message = [ChatEvent(**message)]
     print_if_debug('ChatEvent', 'full')
     url = None #TODO
-    response = ChatApi(data=send_message, cookie=session_id).group_chat_event_send(url)
+    response = ChatApi(data=send_message, ip=ip, port=port, cookie=session_id).group_chat_event_send(url)
     print_if_debug('response made', 'full')
 
     return response
@@ -75,7 +78,8 @@ def process_chats_2(chat_config, session_id, my_user_id):
         else:
             grafana = None
         res = make_image_and_send_it(session_id=session_id, my_user_id=my_user_id,
-                                     chats=chat_config['CHATS'], urls=chat_config['URLS'],
+                                     chats=chat_config['CHATS'], urls=chat_config['URLS'], 
+                                     ip=chat_config['IP_UC_ACCESS_LAYER_WEB'], port=chat_config['PORT_UC_ACCESS_LAYER_WEB'],
                                      grafana=grafana)['status_code']
         print_if_debug(f"{res} for {', '.join([str(i) for i in chat_config['URLS']])} {chat_config['CHATS']}", end='\n\n')
     except Exception:

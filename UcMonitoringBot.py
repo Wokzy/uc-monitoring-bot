@@ -30,7 +30,8 @@ def main():
 
         now = datetime.now()
         first_iteration = False
-        time.sleep((now.replace(minute=now.minute+1, second=0) - now).total_seconds()+1)
+        #print(abs((now.replace(minute=(now.minute+1)%60, second=0) - now).total_seconds())%61 + 1)
+        time.sleep(abs((now.replace(minute=(now.minute+1)%60, second=0) - now).total_seconds())%61 +1)
 
 
 if util.check_arg(['--help', '-h'], sys.argv, return_result=False):
