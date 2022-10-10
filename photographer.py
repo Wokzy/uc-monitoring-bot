@@ -83,7 +83,7 @@ def fullpage_screenshot(driver, element=None):
         return stitched_image, total_height, total_width
 
 
-def make_screen(urls, grafana=None):
+def make_screen(urls, screenshot_filename, grafana=None):
     opts = FirefoxOptions()
     opts.add_argument("--headless")
     driver = webdriver.Firefox(options=opts)
@@ -113,7 +113,7 @@ def make_screen(urls, grafana=None):
     for image in images:
         stitched_image.paste(image[0], (0, i))
         i += image[1]
-    stitched_image.save(SCREENSHOTFILENAME)
+    stitched_image.save(screenshot_filename)
 
     driver.quit()
 

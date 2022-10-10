@@ -19,8 +19,8 @@ def login(ip, port, user, password, debug):
         raise RuntimeError(f'Cannot login to UC, smth wrong\n{response.headers} {response.status_code}')
 
 
-def upload_file(session_id, file_path, ip, port, mediasize=None, attachment_id=None):
-    response = AttachmentAPI(cookie=session_id, ip=ip, port=port).upload_file(files=file_path, filename=SCREENSHOTFILENAME,
+def upload_file(session_id, file_path, filename, ip, port, mediasize=None, attachment_id=None):
+    response = AttachmentAPI(cookie=session_id, ip=ip, port=port).upload_file(files=file_path, filename=filename,
                                                             file_type=SCREENSHOTFILETYPE, mediasize=mediasize,
                                                             attachment_id=attachment_id)
 

@@ -1,3 +1,4 @@
+import os
 import time
 import random
 import threading
@@ -5,43 +6,47 @@ import photographer
 
 from util import *
 from PIL import Image
+from constants import *
+from datetime import datetime
 from work_with_uc import login
-from api.prew_image import prevImage
 from work_with_uc import upload_file
-from models.uc_api.uc_api_models import ChatEvent
-from api.group_chat_method import ChatApi
+from api.prew_image import prevImage
 from crash_logging import crash_logging
 from datetime import datetime, timedelta
-from constants import *
+from api.group_chat_method import ChatApi
+from models.uc_api.uc_api_models import ChatEvent
 
 
 def make_image_and_send_it(session_id, my_user_id, chats, urls, ip, port, grafana=None):
+    screenshot_filename = str(datetime.now().timestamp()).replace('.', '') + str(random.randint(1, 10**5)) + '.png'
+
     print_if_debug(f'Getting image from {urls}')
-    photographer.make_screen(urls, grafana=grafana)
+    photographer.make_screen(urls, screenshot_filename=screenshot_filename, grafana=grafana)
     print_if_debug('Image got. Sending...')
 
     if debug:
-        filename = f"{'_'.join(time.asctime().split(' '))}.png"
-        Image.open(SCREENSHOTFILENAME).save(filename, 'PNG')
+        filename = f"{'_'.join(time.asctime().split(' '))}{screenshot_filename}"
+        Image.open(screenshot_filename).save(filename, 'PNG')
 
         print_if_debug(f'Image saved: {filename}')
 
+        os.remove(screenshot_filename)
         return {'status_code': 200}
 
     base64_preview_40, size_40, img_bytes_300, size_300, width_300, height_300, width_40, height_40, \
-    wight, height = prevImage(filename=SCREENSHOTFILENAME)
+    wight, height = prevImage(filename=screenshot_filename)
 
     print_if_debug('made prevImage', 'full')
 
-    img = Image.open(SCREENSHOTFILENAME).resize((width_300, height_300))
-    thumbnail_filename = f"{SCREENSHOTFILENAME.split('.')[0]}_thumbnail.png"
+    img = Image.open(screenshot_filename).resize((width_300, height_300))
+    thumbnail_filename = f"{screenshot_filename.split('.')[0]}_thumbnail.png"
     img.save(thumbnail_filename, 'PNG')
 
     print_if_debug('thumbnail made', 'full')
 
-    attachment_id, file_size = upload_file(session_id, file_path=f"{SCREENSHOTPATH}/{SCREENSHOTFILENAME}", ip=ip, port=port)
+    attachment_id, file_size = upload_file(session_id, file_path=f"{SCREENSHOTPATH}/{screenshot_filename}", filename=screenshot_filename, ip=ip, port=port)
     print_if_debug('image uploaded', 'full')
-    upload_file(session_id, file_path=f"{SCREENSHOTPATH}/{thumbnail_filename}", ip=ip, port=port, mediasize='m',
+    upload_file(session_id, file_path=f"{SCREENSHOTPATH}/{thumbnail_filename}", filename=thumbnail_filename, ip=ip, port=port, mediasize='m',
                 attachment_id=attachment_id)
     print_if_debug('thumbnail uploaded', 'full')
 
@@ -56,7 +61,7 @@ def make_image_and_send_it(session_id, my_user_id, chats, urls, ip, port, grafan
         message = {"uuid": random.randint(1000, 99999), "sender_id": my_user_id, "chat_id": chat_id,
                    "chat_type": chat['type'], "type": "IMAGE", "plaintext": plain_text,
                    "options": {"images": [
-                       {"attachment_id": attachment_id, "filename": SCREENSHOTFILENAME, "size": file_size, "width": wight,
+                       {"attachment_id": attachment_id, "filename": screenshot_filename, "size": file_size, "width": wight,
                         "height": height, "mimetype": SCREENSHOTFILETYPE, "sizes": [{"size": "m", "width": width_300, "height": height_300}],
                         "thumbnail": {"source": f"data:image/png;base64,{base64_preview_40}", "width": width_40, "height": height_40}}]}}
 
@@ -67,6 +72,8 @@ def make_image_and_send_it(session_id, my_user_id, chats, urls, ip, port, grafan
     url = None #TODO
     response = ChatApi(data=send_message, ip=ip, port=port, cookie=session_id).group_chat_event_send(url)
     print_if_debug('response made', 'full')
+
+    os.remove(screenshot_filename)
 
     return response
 
