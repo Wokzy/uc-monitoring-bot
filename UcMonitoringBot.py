@@ -6,6 +6,7 @@ if '/'.join(sys.argv[0].split('/')[:-1:]):
 
 import time
 import util
+import cli_server
 
 from constants import *
 from datetime import datetime
@@ -16,15 +17,17 @@ from chat_processing import process_chats
 __author__ = "Yegor Yershov"
 
 
+
 def main():
     first_iteration = True
 
-    objects = list(OBJECTS)
+    cli = cli_server.CLIThread(objects=list(OBJECTS))
+    cli.start()
 
     while True:
         try:
-            if objects:
-                objects = process_chats(OBJECTS, first_iteration, util.debug)
+            if cli.objects:
+                cli.objects = process_chats(cli.objects, first_iteration, util.debug)
         except Exception:
             crash_logging()
 

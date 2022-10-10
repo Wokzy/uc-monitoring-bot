@@ -145,3 +145,11 @@ def set_time_conditions(time_string):
     conditions['schedule'] = schedule
 
     return conditions
+
+
+def prepare_object_to_sending(encoding, obj, split_data=False):
+    if split_data:
+        string = str(obj) + '\n'
+    else:
+        string = str(obj)
+    return string.replace("'", '"').encode(encoding)

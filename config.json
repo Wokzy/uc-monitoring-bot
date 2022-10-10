@@ -1,26 +1,30 @@
-[
+{"CLI":{
+"CLI_IP":"0.0.0.0",
+"CLI_PORT":45673,
+},
+"CHATS_OBJECTS":[
 {
-	"URLS":[{"url":"https://example.ru/", "timeout":5}],
-	"CHATS":[{"ID":"", "plain_text":"hello", "type": "GROUP"}],
-	"time":"00:00-10:00 5 * *",
+	"URLS":[{"url":"http://ya.ru/", "timeout":5}],
+	"CHATS":[{"ID":"3633825319302469319", "plain_text":"Суточная статистика UC", "type": "GROUP"}],
+	"time":"14:00-17:30 5 * *",
 	"UC_USER":"",
 	"UC_PASSWORD":"",
 	"GRAFANA_LOGIN":"",
 	"GRAFANA_PASSWORD":"",
 	"USER_API_REQUEST_ADDR":"",
 	"IP_UC_ACCESS_LAYER_WEB":"",
-	"PORT_UC_ACCESS_LAYER_WEB":1234
+	"PORT_UC_ACCESS_LAYER_WEB":
 },
 {
-	"URLS":[{"url":"https://example.com/", "timeout":5}],
-	"CHATS":[{"ID":"", "plain_text":"", "type": "P2P"}],
-	"time":"00:00 * * *",
+	"URLS":[{"url":"http://vk.com/", "timeout":5}],
+	"CHATS":[{"ID":"8372329410731091835", "plain_text":"Суточная статистика UC", "type": "GROUP"}],
+	"time":"13:00-15:00 5 * *",
 	"UC_USER":"",
 	"UC_PASSWORD":"",
 	"GRAFANA_LOGIN":"",
 	"GRAFANA_PASSWORD":"",
 	"USER_API_REQUEST_ADDR":"",
 	"IP_UC_ACCESS_LAYER_WEB":"",
-	"PORT_UC_ACCESS_LAYER_WEB":1234
+	"PORT_UC_ACCESS_LAYER_WEB":
 }
-]
+]}

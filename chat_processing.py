@@ -91,7 +91,7 @@ def process_chats_2(chat_config, session_id, my_user_id):
         print_if_debug(f"{res} for {', '.join([str(i) for i in chat_config['URLS']])} {chat_config['CHATS']}", end='\n\n')
         return
     except Exception:
-        crash_logging()
+        crash_logging(addition_string=str(chat_config['URLS'])+'\n'+srt(chat_config['CHATS']))
         return
 
 
@@ -99,7 +99,8 @@ def process_chats(objects, first_iteration, db=False):
     global debug
     db = debug
 
-    for obj in objects:
+    for i in range(len(objects)):
+        obj = objects[i]
         ip = obj['IP_UC_ACCESS_LAYER_WEB']
         port = obj['PORT_UC_ACCESS_LAYER_WEB']
         user = obj['UC_USER']
@@ -112,6 +113,10 @@ def process_chats(objects, first_iteration, db=False):
                 session_id, my_user_id = login(ip, port, user, password, debug=debug)
                 update_timers(now, obj['time'])
                 threading.Thread(target=process_chats_2, args=(obj, session_id, my_user_id), daemon=True).start()
+
+                if 'STATS' not in objects[i]:
+                    objects[i]['STATS'] = []
+                objects[i]['STATS'].append(f'Began making image at {time.asctime()}')
             elif check == False:
                 update_conditions(now, obj['time'])
 
