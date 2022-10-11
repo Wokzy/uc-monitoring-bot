@@ -67,6 +67,8 @@ class CLIThread(threading.Thread):
                                 self.show_crashes(s)
                             case 'show_crash_info':
                                 self.show_crash_info(s, data['payload'])
+                            case 'clear_crash_logs':
+                                self.clear_crash_logs(s)
 
 
     def get_stat(self, index):
@@ -90,7 +92,7 @@ class CLIThread(threading.Thread):
 
 
     def show_stat(self, s, index):
-        s.send(util.prepare_object_to_sending(ENCODING, self.get_stat(index)))
+        s.send(util.prepare_object_to_sending(ENCODING, self.get_stat(int(index))))
 
 
     def show_all_stats(self, s):
@@ -111,6 +113,14 @@ class CLIThread(threading.Thread):
         s.send(util.prepare_object_to_sending(ENCODING, crash_info))
 
 
+    def clear_crash_logs(self, s):
+        for file in os.listdir(CRASH_LOGS_DIRECTORY):
+            if '.txt' in file:
+                os.remove(f'{CRASH_LOGS_DIRECTORY}/{file}')
+
+        s.send(util.prepare_object_to_sending(ENCODING, 'Successfully clened!'))
+
+
 
     def change_config(self, s, index, config):
 
@@ -118,34 +128,73 @@ class CLIThread(threading.Thread):
 
         if 'time' in config:
             time = util.set_time_conditions(config['time'])
-            config['time_config'] = config['time']
+            tm = config['time']
 
-        self.objects[index] = config
+        for obj in config:
+            self.objects[index][obj] = config[obj]
+
+        f = open('config.json', 'r')
+        config = json.load(f)
+        f.close()
+
+        config['CHATS_OBJECTS'][index] = self.objects[index]
+        config['CHATS_OBJECTS'][index]['time'] = tm
+
+        f = open('config.json', 'w')
+        json.dump(config, f)
+        f.close()
+
         self.objects[index]['time'] = time
 
-        s.send(util.prepare_object_to_sending('ENCODING, Config has been successfully changed'))
+        s.send(util.prepare_object_to_sending(ENCODING, 'Config has been successfully changed'))
 
 
     def delete_object(self, s, index):
-        self.objects.remove(index)
-        s.send(util.prepare_object_to_sending('ENCODING, Object has been deleted'))
+        del self.objects[index]
+
+        f = open('config.json', 'r')
+        cfg = json.load(f)
+        f.close()
+
+        del cfg['CHATS_OBJECTS'][index]
+
+        f = open('config.json', 'w')
+        json.dump(cfg, f)
+        f.close()
+
+        s.send(util.prepare_object_to_sending(ENCODING, 'Object has been deleted'))
 
 
     def add_object(self, s, config):
-        config['time_config'] = config['time']
-        config['time'] = util.set_time_conditions(config['time'])
 
         self.objects.append(config)
 
-        s.send(util.prepare_object_to_sending('ENCODING, Object has been created'))
+        f = open('config.json', 'r')
+        cfg = json.load(f)
+        f.close()
+
+        cfg['CHATS_OBJECTS'].append(config)
+
+        f = open('config.json', 'w')
+        json.dump(cfg, f)
+        f.close()
+
+        config['time_config'] = config['time']
+        config['time'] = util.set_time_conditions(config['time'])
+
+        s.send(util.prepare_object_to_sending(ENCODING, 'Object has been created'))
 
 
     def disconnect(self, s):
         if s in self.outputs:
             self.outputs.remove(s)
         self.inputs.remove(s)
-        s.shutdown(socket.SHUT_RDWR)
-        s.close()
+
+        try:
+            s.shutdown(socket.SHUT_RDWR)
+            s.close()
+        except:
+            pass
 
     def quit(self):
         self.sock.shutdown(socket.SHUT_RDWR)

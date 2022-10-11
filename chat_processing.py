@@ -91,7 +91,7 @@ def process_chats_2(chat_config, session_id, my_user_id):
         print_if_debug(f"{res} for {', '.join([str(i) for i in chat_config['URLS']])} {chat_config['CHATS']}", end='\n\n')
         return
     except Exception:
-        crash_logging(addition_string=str(chat_config['URLS'])+'\n'+srt(chat_config['CHATS']))
+        crash_logging(addition_string=str(chat_config['URLS'])+'\n'+str(chat_config['CHATS']))
         return
 
 
