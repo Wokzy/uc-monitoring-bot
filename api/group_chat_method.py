@@ -37,7 +37,7 @@ class BaseAPI:
         self.ip = ip
         self.port = port
 
-    def send_request_post(self, timeout=None):
+    def send_request_post(self, timeout=None, url=None):
         if not url:
             url = f"{self.ip}:{self.port}/uc/v2/{self.endpoint}"
         request_model = GeneralRequest(method=self.endpoint, id=random.randrange(11111, 99999), payload=self.data)
@@ -46,7 +46,7 @@ class BaseAPI:
                         mediasize=self.mediasize)
         return response
 
-    def send_request_get(self):
+    def send_request_get(self, url=None):
         if not url:
             url = f"{self.ip}:{self.port}/uc/v2/{self.endpoint}"
         response = get(url=url,  cookies=self.cookies, attachment_id=self.attachment_id)
@@ -77,16 +77,16 @@ class ChatApi(BaseAPI):
         self.endpoint = "chat/event/draft/delete"
         return self.send_request_post()
 
-    def group_chat_event_send(self):
+    def group_chat_event_send(self, url=None):
         """ Cборка запроса /chat/event/send """
 
         self.endpoint = "chat/event/send"
-        response = self.send_request_post()
+        response = self.send_request_post(url=url)
         if response.status_code == 200 or response.status_code == 206:
             response.payload = ChatEventResponse(**response.payload)
         return response
 
-    def group_chat_create(self):
+    def group_chat_create(self, url=None):
         """ Cборка запроса /chat/group/create """
 
         self.endpoint = "chat/group/create"

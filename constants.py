@@ -11,19 +11,13 @@ with open('config.json', 'r') as f:
 CLI_IP = file['CLI']['CLI_IP']
 CLI_PORT = file['CLI']['CLI_PORT']
 
-ENCODING = 'utf-8'
+ENCODING = 'ascii'
 
-file = file['CHATS_OBJECTS']
+file = list(file['CHATS_OBJECTS'])
 
-for obj in file:
-	obj['time_config'] = obj['time']
-	obj['time'] = set_time_conditions(obj['time'])
-
-	if 'GRAFANA' in obj:
-		if 'GRAFANA_LOGIN' not in obj:
-			obj['GRAFANA_LOGIN'] = file['DEFAULT_GRAFANA_LOGIN']
-		if 'GRAFANA_PASSWORD' not in obj:
-			obj['GRAFANA_PASSWORD'] = file['DEFAULT_GRAFANA_PASSWORD']
+for i in range(len(file)):
+	file[i]['time_config'] = str(file[i]['time'])
+	file[i]['time'] = set_time_conditions(file[i]['time'])
 
 OBJECTS = list(file)
 

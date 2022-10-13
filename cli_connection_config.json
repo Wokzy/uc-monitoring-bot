@@ -1,5 +1,5 @@
 {
 "IP":"127.0.0.1",
 "PORT":45673,
-"ENCODING":"utf-8"
+"ENCODING":"ascii"
 }

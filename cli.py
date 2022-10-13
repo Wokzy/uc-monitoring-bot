@@ -42,7 +42,8 @@ class CLI:
 			elif choice == 'quit':
 				self.quit()
 
-			self.update_objects()
+			if self.update_objects() == 0:
+				continue
 
 			main_menu[choice[0]][1]()
 
@@ -51,6 +52,12 @@ class CLI:
 		info = {'reason':'show_all_configs'}
 		self.sock.send(self.prepare_object_to_sending(info))
 		self.objects = self.get_information()
+
+		if self.objects == None:
+			self.objects = []
+		elif type(self.objects) == str:
+			print('Sudden network error occured, try again')
+			return 0
 
 
 	def show_stat(self):
@@ -75,9 +82,10 @@ class CLI:
 		print('\n')
 		data = self.objects[index] # We already updated objects list with all configs
 
-		print("URLS:", data['URLS'])
-		print("CHATS:", data['CHATS'])
-		print("time:", data['time'], end='\n\n')
+		for key in data:
+			print(f'{key}:', data[key])
+
+		print('\n\n')
 
 
 	def show_all_stats(self):
@@ -86,6 +94,9 @@ class CLI:
 
 		stats = self.get_information()
 
+		if not stats:
+			print('Stats error')
+			return
 
 		for i in range(len(stats)):
 			obj = stats[i]
@@ -107,9 +118,11 @@ class CLI:
 				break
 
 			print('\n')
-			print("URLS:", data['URLS'])
-			print("CHATS:", data['CHATS'])
-			print("time:", data['time'], end='\n\n')
+
+			for key in data:
+				print(f'{key}:', data[key])
+
+			print('\n\n')
 
 
 	def change_config(self):
@@ -207,9 +220,13 @@ class CLI:
 
 
 	def get_information(self, parse=True):
-		info = self.sock.recv(1024).decode(self.encoding)
+		info = self.sock.recv(2048).decode(self.encoding)
 		if parse and ('[' in info or '{' in info):
-			return json.loads(info)
+			try:
+				return json.loads(info)
+			except json.decoder.JSONDecodeError:
+				print(info)
+				return None
 		return info
 
 
@@ -227,6 +244,7 @@ class CLI:
 			return None
 
 		if type(lst) == list:
+			lst = list(lst)
 			print('v - show all variants')
 			if show_all_variants:
 				for i in range(len(lst)):
@@ -239,11 +257,10 @@ class CLI:
 				else:
 					ch = input(f'{ask_string} (q - quit) -> ')
 
-				match ch:
-					case 'q':
-						return 'quit'
-					case 'v':
-						return self.get_choice(lst=lst, ask_string=ask_string, attempts=attempts, show_all_variants=True)
+				if ch == 'q':
+					return 'quit'
+				elif ch == 'v':
+					return self.get_choice(lst=lst, ask_string=ask_string, attempts=attempts, show_all_variants=True)
 
 				ch = int(ch)
 

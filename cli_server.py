@@ -14,10 +14,13 @@ class CLIThread(threading.Thread):
         self.objects = objects
 
         self.sock = socket.socket()
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((CLI_IP, CLI_PORT))
         self.sock.listen(5)
         self.inputs = [self.sock]
         self.outputs = []
+
+        self.requests = {}
 
 
     def accept_connection(self, s):
@@ -36,7 +39,7 @@ class CLIThread(threading.Thread):
                     self.accept_connection(s)
                 else:
                     try:
-                        data = s.recv(1024)
+                        data = s.recv(512)
                     except:
                         self.disconnect(s)
                         continue
@@ -48,27 +51,36 @@ class CLIThread(threading.Thread):
                             print(e)
                             continue
 
-                        match data['reason']:
-                            case 'show_stat':
-                                self.show_stat(s, data['index'])
-                            case 'show_all_stats':
-                                self.show_all_stats(s)
-                            case 'show_config':
-                                self.show_config(s, data['index'])
-                            case 'show_all_configs':
-                                self.show_all_configs(s)
-                            case 'change_config':
-                                self.change_config(s, data['index'], data['payload'])
-                            case 'add_object':
-                                self.add_object(s, data['payload'])
-                            case 'delete_object':
-                                self.delete_object(s, data['index'])
-                            case 'show_crashes':
-                                self.show_crashes(s)
-                            case 'show_crash_info':
-                                self.show_crash_info(s, data['payload'])
-                            case 'clear_crash_logs':
-                                self.clear_crash_logs(s)
+                        self.requests[s] = data
+                        self.outputs.append(s)
+
+            for s in self.writable:
+                self.outputs.remove(s)
+                if s in self.requests:
+                    data = self.requests[s]
+
+                    if data['reason'] == 'show_stat':
+                        self.show_stat(s, data['index'])
+                    elif data['reason'] == 'show_all_stats':
+                        self.show_all_stats(s)
+                    elif data['reason'] == 'show_config':
+                        self.show_config(s, data['index'])
+                    elif data['reason'] == 'show_all_configs':
+                        self.show_all_configs(s)
+                    elif data['reason'] == 'change_config':
+                        self.change_config(s, data['index'], data['payload'])
+                    elif data['reason'] == 'add_object':
+                        self.add_object(s, data['payload'])
+                    elif data['reason'] == 'delete_object':
+                        self.delete_object(s, data['index'])
+                    elif data['reason'] == 'show_crashes':
+                        self.show_crashes(s)
+                    elif data['reason'] == 'show_crash_info':
+                        self.show_crash_info(s, data['payload'])
+                    elif data['reason'] == 'clear_crash_logs':
+                        self.clear_crash_logs(s)
+
+                    del self.requests[s]
 
 
     def get_stat(self, index):
@@ -79,7 +91,14 @@ class CLIThread(threading.Thread):
 
 
     def get_config(self, index):
-        return {"URLS":self.objects[index]['URLS'], "CHATS":self.objects[index]['CHATS'], 'time':self.objects[index]['time_config']}
+        cfg = dict(self.objects[index])
+        cfg['time'] = cfg['time_config']
+        del cfg['time_config']
+
+        if "STATS" in cfg:
+            del cfg['STATS']
+
+        return cfg
 
 
     def show_config(self, s, index):
@@ -137,14 +156,16 @@ class CLIThread(threading.Thread):
         config = json.load(f)
         f.close()
 
-        config['CHATS_OBJECTS'][index] = self.objects[index]
+        config['CHATS_OBJECTS'][index] = dict(self.objects[index])
         config['CHATS_OBJECTS'][index]['time'] = tm
+        del config['CHATS_OBJECTS'][index]['time_config']
 
         f = open('config.json', 'w')
         json.dump(config, f)
         f.close()
 
         self.objects[index]['time'] = time
+        self.objects[index]['time_config'] = tm
 
         s.send(util.prepare_object_to_sending(ENCODING, 'Config has been successfully changed'))
 

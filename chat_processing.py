@@ -80,7 +80,7 @@ def make_image_and_send_it(session_id, my_user_id, chats, urls, ip, port, grafan
 
 def process_chats_2(chat_config, session_id, my_user_id):
     try:
-        if 'GRAFANA' in chat_config:
+        if 'GRAFANA' in chat_config and chat_config['GRAFANA']:
             grafana = {"LOGIN":chat_config['GRAFANA_LOGIN'], "PASSWORD":chat_config['GRAFANA_PASSWORD']}
         else:
             grafana = None
