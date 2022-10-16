@@ -16,6 +16,9 @@ def crash_logging(stop_the_programm=STOP_PROGRAMM_AFTER_CRASH, addition_string=N
     if check_arg(['--no-crash-log'], sys.argv, return_result=False):
         return
 
+    if CRASH_LOGS_DIRECTORY not in os.listdir():
+        os.mkdir(CRASH_LOGS_DIRECTORY)
+
     filename = '_'.join(time.asctime().split(' ')) + CRASH_LOGS_FILE_FORMAT
 
     with open(f"{CRASH_LOGS_DIRECTORY}/{filename}", 'w') as f:
