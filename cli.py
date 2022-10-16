@@ -220,7 +220,7 @@ class CLI:
 
 
 	def get_information(self, parse=True):
-		info = self.sock.recv(2048).decode(self.encoding)
+		info = self.sock.recv(65536).decode(self.encoding)
 		if parse and ('[' in info or '{' in info):
 			try:
 				return json.loads(info)
