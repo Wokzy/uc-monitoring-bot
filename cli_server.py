@@ -1,5 +1,6 @@
 import os
 import util
+import time
 import json
 import socket
 import select
@@ -52,7 +53,10 @@ class CLIThread(threading.Thread):
                             continue
 
                         self.requests[s] = data
-                        self.outputs.append(s)
+                        if s not in self.outputs:
+                            self.outputs.append(s)
+
+            #time.sleep(.1)
 
             for s in self.writable:
                 self.outputs.remove(s)
@@ -102,26 +106,27 @@ class CLIThread(threading.Thread):
 
 
     def show_config(self, s, index):
-        s.send(util.prepare_object_to_sending(ENCODING, self.get_config(index)))
+        s.sendall(util.prepare_object_to_sending(ENCODING, self.get_config(index)))
 
 
     def show_all_configs(self, s):
         configs = [self.get_config(i) for i in range(len(self.objects))]
-        s.send(util.prepare_object_to_sending(ENCODING, configs))
+        data = util.prepare_object_to_sending(ENCODING, configs)
+        s.sendall(data)
 
 
     def show_stat(self, s, index):
-        s.send(util.prepare_object_to_sending(ENCODING, self.get_stat(int(index))))
+        s.sendall(util.prepare_object_to_sending(ENCODING, self.get_stat(int(index))))
 
 
     def show_all_stats(self, s):
         stats = [self.get_stat(i) for i in range(len(self.objects))]
-        s.send(util.prepare_object_to_sending(ENCODING, stats))
+        s.sendall(util.prepare_object_to_sending(ENCODING, stats))
 
 
     def show_crashes(self, s):
         crashes = [crash.split(CRASH_LOGS_FILE_FORMAT)[0] for crash in os.listdir(CRASH_LOGS_DIRECTORY)]
-        s.send(util.prepare_object_to_sending(ENCODING, crashes))
+        s.sendall(util.prepare_object_to_sending(ENCODING, crashes))
 
 
     def show_crash_info(self, s, filename):
@@ -129,7 +134,7 @@ class CLIThread(threading.Thread):
             crash_info = f.read()
             f.close()
 
-        s.send(util.prepare_object_to_sending(ENCODING, crash_info))
+        s.sendall(util.prepare_object_to_sending(ENCODING, crash_info))
 
 
     def clear_crash_logs(self, s):
@@ -137,7 +142,7 @@ class CLIThread(threading.Thread):
             if '.txt' in file:
                 os.remove(f'{CRASH_LOGS_DIRECTORY}/{file}')
 
-        s.send(util.prepare_object_to_sending(ENCODING, 'Successfully clened!'))
+        s.sendall(util.prepare_object_to_sending(ENCODING, 'Successfully clened!'))
 
 
 
@@ -167,7 +172,7 @@ class CLIThread(threading.Thread):
         self.objects[index]['time'] = time
         self.objects[index]['time_config'] = tm
 
-        s.send(util.prepare_object_to_sending(ENCODING, 'Config has been successfully changed'))
+        s.sendall(util.prepare_object_to_sending(ENCODING, 'Config has been successfully changed'))
 
 
     def delete_object(self, s, index):
@@ -183,7 +188,7 @@ class CLIThread(threading.Thread):
         json.dump(cfg, f)
         f.close()
 
-        s.send(util.prepare_object_to_sending(ENCODING, 'Object has been deleted'))
+        s.sendall(util.prepare_object_to_sending(ENCODING, 'Object has been deleted'))
 
 
     def add_object(self, s, config):
@@ -203,7 +208,7 @@ class CLIThread(threading.Thread):
         config['time_config'] = config['time']
         config['time'] = util.set_time_conditions(config['time'])
 
-        s.send(util.prepare_object_to_sending(ENCODING, 'Object has been created'))
+        s.sendall(util.prepare_object_to_sending(ENCODING, 'Object has been created'))
 
 
     def disconnect(self, s):

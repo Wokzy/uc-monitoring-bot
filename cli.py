@@ -1,8 +1,9 @@
 import os
 import sys
 import json
+import time
 import socket
-
+import readline
 
 
 CONFIG = 'cli_connection_config.json'
@@ -13,8 +14,14 @@ class CLI:
 		self.load_settings()
 		self.objects = []
 
-		self.sock = socket.socket()
+		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		#self.sock.setblocking(0)
+		self.sock.settimeout(0.3)
 		self.sock.connect(self.server_address)
+
+		readline.parse_and_bind("tab: complete")
+		readline.set_completer(self.completer)
 
 	def load_settings(self):
 		if CONFIG in os.listdir():
@@ -30,6 +37,8 @@ class CLI:
 
 	def main(self):
 		while True:
+			self.current_commands = ["show_stat_of_certain_object", ]
+
 			main_menu = [('Show stat of certain object', self.show_stat), ('Show config of sertain object', self.show_config), ('Show all stats', self.show_all_stats), 
 							("Show all configs", self.show_all_configs), ("Change config", self.change_config), ("Add object", self.add_object), 
 							("Delete object", self.delete_object), ("Show crashes", self.show_crashes), ("Show crash info", self.show_crash_info),
@@ -42,8 +51,12 @@ class CLI:
 			elif choice == 'quit':
 				self.quit()
 
+
 			if self.update_objects() == 0:
 				continue
+
+			#time.sleep(.13)
+
 
 			main_menu[choice[0]][1]()
 
@@ -220,13 +233,18 @@ class CLI:
 
 
 	def get_information(self, parse=True):
-		info = self.sock.recv(65536).decode(self.encoding)
+		info = self.sock.recv(8192).decode(self.encoding)
+		try:
+			info += self.sock.recv(8192).decode(self.encoding)
+		except:
+			pass
+
 		if parse and ('[' in info or '{' in info):
 			try:
 				return json.loads(info)
 			except json.decoder.JSONDecodeError:
 				print(info)
-				return None
+				return None #self.get_information()
 		return info
 
 
@@ -281,6 +299,14 @@ class CLI:
 		else:
 			string = str(obj)
 		return string.replace("'", '"').encode(self.encoding)
+
+
+	def string_completer(self, text, state):
+		options = [i for i in self.current_commands if i.startswith(text)]
+		if state < len(options):
+			return options[state]
+		else:
+			return None
 
 
 CLI().main()
