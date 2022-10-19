@@ -36,4 +36,4 @@ def crash_logging(stop_the_programm=STOP_PROGRAMM_AFTER_CRASH, addition_string=N
     if stop_the_programm:
         sys.exit()
 
-    time.sleep(5)
+    return filename

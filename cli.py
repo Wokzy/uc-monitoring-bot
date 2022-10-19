@@ -114,6 +114,7 @@ class CLI:
 
 			if obj:
 				print('\n')
+				print(f"{i} {self.objects[i]['LABEL']}:")
 				print('\n'.join(obj), end = '\n\n')
 
 
@@ -159,7 +160,7 @@ class CLI:
 			if cmd in ['a', 'apply']:
 				break
 
-			changes += cmd
+			changes.append(cmd)
 
 		cfg = {}
 
@@ -275,8 +276,10 @@ class CLI:
 		print('\n')
 
 	def show_crash_info(self):
+		self.state = 'show_crash_info'
+		self.current_commands = list(filter(('').__ne__, self.get_crashes())) + ['quit', 'q']
 		filename = input('Enter filename of crashlog without any extensions (q - quit) -> ')
-		if filename == 'q':
+		if filename == 'q' or filename == 'quit':
 			return
 
 		if filename not in self.get_crashes():
@@ -419,6 +422,7 @@ class CLI:
 					commands = ['ID']
 
 			elif len(buffer) == 3:
+				commands = []
 				if buffer[0] == 'add_url':
 					commands = ['timeout']
 

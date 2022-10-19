@@ -130,7 +130,7 @@ class CLIThread(threading.Thread):
 
 
     def show_crash_info(self, s, filename):
-        with open(f"{CRASH_LOGS_DIRECTORY}/{filename}{CRASH_LOGS_FILE_FORMAT}", 'r') as f:
+        with open(f"{CRASH_LOGS_DIRECTORY}/{filename}{CRASH_LOGS_FILE_FORMAT * (CRASH_LOGS_FILE_FORMAT not in filename)}", 'r') as f:
             crash_info = f.read()
             f.close()
 
@@ -151,8 +151,12 @@ class CLIThread(threading.Thread):
         time = self.objects[index]['time']
 
         if 'time' in config:
-            time = util.set_time_conditions(config['time'])
-            tm = config['time']
+            try:
+                time = util.set_time_conditions(config['time'])
+                tm = config['time']
+            except:
+                s.sendall(util.prepare_object_to_sending(ENCODING, 'Bad interpretation\n'))
+                del config['time']
 
         for obj in config:
             if obj == 'remove':
@@ -174,6 +178,8 @@ class CLIThread(threading.Thread):
             cfg['CHATS_OBJECTS'][index]['time'] = cfg['CHATS_OBJECTS'][index]['time_config']
 
         del cfg['CHATS_OBJECTS'][index]['time_config']
+        if 'STATS' in cfg['CHATS_OBJECTS'][index]:
+            del cfg['CHATS_OBJECTS'][index]['STATS']
 
         f = open('config.json', 'w')
         json.dump(cfg, f)
