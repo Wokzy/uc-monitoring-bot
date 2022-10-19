@@ -11,7 +11,7 @@ with open('config.json', 'r') as f:
 CLI_IP = file['CLI']['CLI_IP']
 CLI_PORT = file['CLI']['CLI_PORT']
 
-ENCODING = 'ascii'
+ENCODING = 'utf-8'
 
 file = list(file['CHATS_OBJECTS'])
 

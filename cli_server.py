@@ -155,22 +155,33 @@ class CLIThread(threading.Thread):
             tm = config['time']
 
         for obj in config:
+            if obj == 'remove':
+                if config[obj] in self.objects[index]:
+                    del self.objects[index][config[obj]]
+                    continue
+
             self.objects[index][obj] = config[obj]
 
         f = open('config.json', 'r')
-        config = json.load(f)
+        cfg = json.load(f)
         f.close()
 
-        config['CHATS_OBJECTS'][index] = dict(self.objects[index])
-        config['CHATS_OBJECTS'][index]['time'] = tm
-        del config['CHATS_OBJECTS'][index]['time_config']
+        cfg['CHATS_OBJECTS'][index] = dict(self.objects[index])
+
+        if 'time' in config:
+            cfg['CHATS_OBJECTS'][index]['time'] = tm
+        else:
+            cfg['CHATS_OBJECTS'][index]['time'] = cfg['CHATS_OBJECTS'][index]['time_config']
+
+        del cfg['CHATS_OBJECTS'][index]['time_config']
 
         f = open('config.json', 'w')
-        json.dump(config, f)
+        json.dump(cfg, f)
         f.close()
 
-        self.objects[index]['time'] = time
-        self.objects[index]['time_config'] = tm
+        if 'time' in config:
+            self.objects[index]['time'] = time
+            self.objects[index]['time_config'] = tm
 
         s.sendall(util.prepare_object_to_sending(ENCODING, 'Config has been successfully changed'))
 
