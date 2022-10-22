@@ -90,7 +90,7 @@ def make_image_and_send_it(object_index, session_id, my_user_id, chats, urls, ip
 def process_chats_2(object_index, chat_config, session_id, my_user_id):
     global stats_queue
     try:
-        if 'GRAFANA' in chat_config and chat_config['GRAFANA']:
+        if 'GRAFANA' in chat_config and chat_config['GRAFANA'] and type(chat_config['GRAFANA']) == int:
             grafana = {"LOGIN":chat_config['GRAFANA_LOGIN'], "PASSWORD":chat_config['GRAFANA_PASSWORD']}
         else:
             grafana = None

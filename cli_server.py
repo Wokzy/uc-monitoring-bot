@@ -148,6 +148,7 @@ class CLIThread(threading.Thread):
 
     def change_config(self, s, index, config):
 
+        old_object_config = dict(self.objects[index])
         time = self.objects[index]['time']
 
         if 'time' in config:
@@ -166,66 +167,83 @@ class CLIThread(threading.Thread):
 
             self.objects[index][obj] = config[obj]
 
-        f = open('config.json', 'r')
-        cfg = json.load(f)
-        f.close()
+        cfg, old_cfg = self.load_config()
 
-        cfg['CHATS_OBJECTS'][index] = dict(self.objects[index])
+        try:
+            cfg['CHATS_OBJECTS'][index] = dict(self.objects[index])
 
-        if 'time' in config:
-            cfg['CHATS_OBJECTS'][index]['time'] = tm
-        else:
-            cfg['CHATS_OBJECTS'][index]['time'] = cfg['CHATS_OBJECTS'][index]['time_config']
+            if 'time' in config:
+                cfg['CHATS_OBJECTS'][index]['time'] = tm
+            else:
+                cfg['CHATS_OBJECTS'][index]['time'] = cfg['CHATS_OBJECTS'][index]['time_config']
 
-        del cfg['CHATS_OBJECTS'][index]['time_config']
-        if 'STATS' in cfg['CHATS_OBJECTS'][index]:
-            del cfg['CHATS_OBJECTS'][index]['STATS']
+            del cfg['CHATS_OBJECTS'][index]['time_config']
+            if 'STATS' in cfg['CHATS_OBJECTS'][index]:
+                del cfg['CHATS_OBJECTS'][index]['STATS']
 
-        f = open('config.json', 'w')
-        json.dump(cfg, f)
-        f.close()
+            f = open('config.json', 'w')
+            json.dump(cfg, f)
+            f.close()
 
-        if 'time' in config:
-            self.objects[index]['time'] = time
-            self.objects[index]['time_config'] = tm
+            if 'time' in config:
+                self.objects[index]['time'] = time
+                self.objects[index]['time_config'] = tm
 
-        s.sendall(util.prepare_object_to_sending(ENCODING, 'Config has been successfully changed'))
+            s.sendall(util.prepare_object_to_sending(ENCODING, 'Config has been successfully changed'))
+        except:
+            self.objects[index] = dict(old_object_config)
+            s.sendall(util.prepare_object_to_sending(ENCODING, 'Bad interpretation'))
 
 
     def delete_object(self, s, index):
         del self.objects[index]
 
-        f = open('config.json', 'r')
-        cfg = json.load(f)
-        f.close()
+        cfg, old_cfg = self.load_config()
 
-        del cfg['CHATS_OBJECTS'][index]
+        try:
+            del cfg['CHATS_OBJECTS'][index]
 
-        f = open('config.json', 'w')
-        json.dump(cfg, f)
-        f.close()
+            self.dump_config(cfg)
 
-        s.sendall(util.prepare_object_to_sending(ENCODING, 'Object has been deleted'))
+            s.sendall(util.prepare_object_to_sending(ENCODING, 'Object has been deleted'))
+        except:
+            self.dump_config(old_cfg)
 
 
     def add_object(self, s, config):
 
         self.objects.append(config)
 
+        cfg, old_cfg = self.load_config()
+
+        try:
+            cfg['CHATS_OBJECTS'].append(config)
+
+            self.dump_config(cfg)
+
+            self.objects[-1]['time_config'] = config['time']
+            self.objects[-1]['time'] = util.set_time_conditions(config['time'])
+
+            s.sendall(util.prepare_object_to_sending(ENCODING, 'Object has been created'))
+        except:
+            self.dump_config(old_cfg)
+            self.objects.pop()
+            s.sendall(util.prepare_object_to_sending(ENCODING, 'Bad interpretation, objects hasn\'t been added'))
+
+
+    def load_config(self):
         f = open('config.json', 'r')
         cfg = json.load(f)
+        old_cfg = dict(cfg)
         f.close()
 
-        cfg['CHATS_OBJECTS'].append(config)
+        return cfg, old_cfg
 
+
+    def dump_config(self, cfg):
         f = open('config.json', 'w')
         json.dump(cfg, f)
         f.close()
-
-        config['time_config'] = config['time']
-        config['time'] = util.set_time_conditions(config['time'])
-
-        s.sendall(util.prepare_object_to_sending(ENCODING, 'Object has been created'))
 
 
     def disconnect(self, s):

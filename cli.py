@@ -13,6 +13,8 @@ class CLI:
 	def __init__(self):
 		self.load_settings()
 		self.objects = []
+		self.vars = ['LABEL', 'URLS', 'CHATS', 'time', 'UC_USER', 'UC_PASSWORD', 'GRAFANA_LOGIN', 
+						'GRAFANA_PASSWORD', 'USER_API_REQUEST_ADDR', 'IP_UC_ACCESS_LAYER_WEB', 'PORT_UC_ACCESS_LAYER_WEB']
 
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -143,8 +145,7 @@ class CLI:
 		self.state = 'change_config'
 		self.current_commands = ['set', 'rm', 'add_url', 'rm_url', 'add_chat', 'rm_chat']
 		self.unsettable_vars = ['URLS', 'CHATS']
-		self.undeletable_vars = ['LABEL', 'URLS', 'CHATS', 'time', 'UC_USER', 'UC_PASSWORD', 'GRAFANA_LOGIN', 
-								'GRAFANA_PASSWORD', 'USER_API_REQUEST_ADDR', 'IP_UC_ACCESS_LAYER_WEB', 'PORT_UC_ACCESS_LAYER_WEB']
+		self.undeletable_vars = self.vars
 
 		string = '(q - quit) (a - apply) \n'
 		cmd = self.get_commnand(string=string)
@@ -234,16 +235,25 @@ class CLI:
 
 
 	def add_object(self):
-		ipt = input('Enter object config as json or file:FILENAME.json (q - quit) \n')
-		if ipt == 'q':
+		self.current_commands = ['quit']
+		self.state = 'add_object'
+		ipt = input('Enter LABEL (q - quit) -> \n')
+
+		config = {'LABEL':ipt.replace(' ', "_"), "URLS":[], "CHATS":[], 'time':"00:00 * * *"}
+
+		if ipt in ['q', 'quit']:
 			return
+		'''
 		elif 'file:' in ipt:
 			filename = ipt.split(':')[1]
 			f = open(filename, 'r')
 			config = json.load(f)
 			f.close()
-		else:
-			config = json.loads(ipt.replace("'", '"'))
+		'''
+
+		for var in self.vars:
+			if var not in config:
+				config[var] = ""
 
 		info = {'reason':'add_object', 'payload':config}
 		self.sock.send(self.prepare_object_to_sending(info))

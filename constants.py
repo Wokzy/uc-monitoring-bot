@@ -18,6 +18,7 @@ file = list(file['CHATS_OBJECTS'])
 for i in range(len(file)):
 	file[i]['time_config'] = str(file[i]['time'])
 	file[i]['time'] = set_time_conditions(file[i]['time'])
+	file[i]['LABEL'] = file[i]['LABEL'].replace(' ', "_")
 
 OBJECTS = list(file)
 

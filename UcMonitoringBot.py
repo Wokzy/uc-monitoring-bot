@@ -27,7 +27,11 @@ def main():
     while True:
         try:
             if cli.objects:
-                cli.objects = process_chats(cli.objects, first_iteration, util.debug)
+                res = process_chats(cli.objects, first_iteration, util.debug)
+                labels = [obj['LABEL'] for obj in cli.objects]
+                for i in range(len(res)):
+                    if res[i]['LABEL'] in labels:
+                        cli.objects[i] = res[i]
         except Exception:
             crash_logging()
 
