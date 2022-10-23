@@ -164,6 +164,14 @@ class CLIThread(threading.Thread):
                 if config[obj] in self.objects[index]:
                     del self.objects[index][config[obj]]
                     continue
+            
+            if  type(config[obj]) == str:
+                if config[obj].isnumeric():
+                    config[obj] = int(config[obj])
+                elif config[obj].lower() == "false":
+                    config[obj] = 0
+                elif config[obj].lower() == "true":
+                    config[obj] = 1
 
             self.objects[index][obj] = config[obj]
 
