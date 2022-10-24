@@ -27,6 +27,7 @@ SCREENSHOTFILENAME = 'scrn.png'
 SCREENSHOTFILETYPE = 'image/png'
 CRASH_LOGS_DIRECTORY = 'crash_logs'
 CRASH_LOGS_FILE_FORMAT = '.txt'
+STATS_LIMIT = 5
 
 STOP_PROGRAMM_AFTER_CRASH = check_arg(['--stop-after-crash'], sys.argv, return_result=False)
 

@@ -33,12 +33,12 @@ def make_image_and_send_it(object_index, session_id, my_user_id, chats, urls, ip
         filename = f"{'_'.join(time.asctime().split(' '))}{screenshot_filename}"
         Image.open(screenshot_filename).save(filename, 'PNG')
 
-        result_rpeorting_string = f'{time.asctime()}     Image saved: {filename}'
+        result_rpeorting_string = f'{time.asctime()}   Image saved: {filename}'
 
         print_if_debug(result_rpeorting_string)
 
         os.remove(screenshot_filename)
-        stats_queue.put({'index':object_index, 'string':result_rpeorting_string})
+        stats_queue.put({'index':object_index, 'string':result_rpeorting_string, 'type':'successes'})
         return {'status_code': 200}
 
     base64_preview_40, size_40, img_bytes_300, size_300, width_300, height_300, width_40, height_40, \
@@ -80,7 +80,7 @@ def make_image_and_send_it(object_index, session_id, my_user_id, chats, urls, ip
         url = None #TODO
         response = ChatApi(data=send_message, ip=ip, port=port, cookie=session_id).group_chat_event_send(url)
         print_if_debug('response made', 'full')
-        stats_queue.put({'index':object_index, 'string':f'{time.asctime()}   {chat["ID"]} Image has been made and sent with status code {response.status_code}'})
+        stats_queue.put({'index':object_index, 'string':f'{time.asctime()}   {chat["ID"]} Image has been made and sent with status code {response.status_code}', 'type':'successes'})
 
     os.remove(screenshot_filename)
 
@@ -102,7 +102,7 @@ def process_chats_2(object_index, chat_config, session_id, my_user_id):
         return
     except Exception:
         crash_log = crash_logging(addition_string=str(chat_config['URLS'])+'\n'+str(chat_config['CHATS']))
-        stats_queue.put({'index':object_index, 'string':f"{time.asctime()}   Crashed, log is saved in {crash_log}"})
+        stats_queue.put({'index':object_index, 'string':f'{time.asctime()}   Crashed, log is saved in {crash_log}', 'type':'errors'})
         return
 
 
@@ -112,7 +112,7 @@ def process_chats(objects, first_iteration, db=False):
 
     for i in range(len(objects)):
         if 'STATS' not in objects[i]:
-            objects[i]['STATS'] = []
+            objects[i]['STATS'] = {"successes":[], "errors":[], 'stats':[]}
 
         obj = objects[i]
         ip = obj['IP_UC_ACCESS_LAYER_WEB']
@@ -128,12 +128,24 @@ def process_chats(objects, first_iteration, db=False):
                 update_timers(now, obj['time'])
                 threading.Thread(target=process_chats_2, args=(i, obj, session_id, my_user_id), daemon=True).start()
 
-                objects[i]['STATS'].append(f'{time.asctime()}   Began making image')
+                #objects[i]['STATS']['stats'].append(f'{time.asctime()}   Began making image')
             elif check == False:
                 update_conditions(now, obj['time'])
 
     while not stats_queue.empty():
         stat = stats_queue.get()
-        objects[stat['index']]['STATS'].append(stat['string'])
+        while len(objects[stat['index']]['STATS']['stats']) >= STATS_LIMIT:
+
+            string = objects[stat['index']]['STATS']['stats'][0]
+            objects[stat['index']]['STATS']['stats'].remove(string)
+
+            if string in objects[stat['index']]['STATS']['errors']:
+                objects[stat['index']]['STATS']['errors'].remove(string)
+
+            if string in objects[stat['index']]['STATS']['successes']:
+                objects[stat['index']]['STATS']['successes'].remove(string)
+
+        objects[stat['index']]['STATS'][stat['type']].append(stat['string'])
+        objects[stat['index']]['STATS']['stats'].append(stat['string'])
 
     return objects

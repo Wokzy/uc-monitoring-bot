@@ -43,20 +43,29 @@ class CLI:
 						"delete_object":self.delete_object, "show_crashes":self.show_crashes, "show_crash_info":self.show_crash_info,
 						"clear_crash_logs":self.clear_crash_logs, 'quit':self.quit}
 
+		self.commands_with_labels = ['show_config_of_certain_object', 'show_stat_of_certain_object', 'change_config']
+		self.commands_with_args = self.commands_with_labels + ['show_all_stats']
+
+		while self.update_objects() == 0:
+			pass
+
+		self.labels = [obj['LABEL'] for obj in self.objects]
+
 		while True:
 			self.current_commands = [key for key in main_menu]
 			self.state = 'main_menu'
-			command = self.get_commnand()
+			command = self.get_commnand().split(' ')
 
-			#choice = self.get_choice([i[0] for i in main_menu], attempts=False, show_all_variants=False)
-
-			if command not in main_menu:
+			if command[0] not in main_menu:
 				continue
 
 			if self.update_objects() == 0:
 				continue
 
-			main_menu[command]()
+			if command[0] in self.commands_with_args:
+				main_menu[command[0]](command)
+			else:
+				main_menu[command[0]]()
 
 
 	def update_objects(self):
@@ -71,11 +80,10 @@ class CLI:
 			return 0
 
 
-	def show_stat(self, index=None):
-		if type(index) != int:
-			index = self.get_index_from_user()
-			if index == None:
-				return
+	def show_stat(self, cmd):
+		index = self.get_index_from_command(cmd)
+		if index == None:
+			return
 
 		info = {'reason':'show_stat', 'index':index}
 		self.sock.send(self.prepare_object_to_sending(info))
@@ -83,14 +91,25 @@ class CLI:
 		print('\n STATS:')
 		stat = self.get_information()
 
-		print('\n'.join(stat), end = '\n')
+		print(f'Total: {len(stat["errors"]) + len(stat["successes"])}')
+		print(f'Successes: {len(stat["successes"])}')
+		print(f'Errors: {len(stat["errors"])}')
+
+		if 'errors' in cmd:
+			print('\n'.join(stat['errors']), end = '\n')
+		elif 'successes' in cmd:
+			print('\n'.join(stat['successes']), end = '\n')
+		else:
+			print('\n'.join(stat['stats']), end = '\n')
 
 
-	def show_config(self, index=None):
+	def show_config(self, cmd=None, index=None):
 		if type(index) != int:
-			index = self.get_index_from_user()
+			index = self.get_index_from_command(cmd)
 			if index == None:
 				return
+		elif index == None and cmd == None:
+			return
 
 		print('\n')
 		data = self.objects[index] # We already updated objects list with all configs
@@ -101,7 +120,7 @@ class CLI:
 		print('\n\n')
 
 
-	def show_all_stats(self):
+	def show_all_stats(self, cmd):
 		info = {'reason':'show_all_stats'}
 		self.sock.send(self.prepare_object_to_sending(info))
 
@@ -117,7 +136,15 @@ class CLI:
 			if obj:
 				print('\n')
 				print(f"{i} {self.objects[i]['LABEL']}:")
-				print('\n'.join(obj), end = '\n\n')
+				print(f'Total: {len(obj["errors"]) + len(obj["successes"])}')
+				print(f'Successes: {len(obj["successes"])}')
+				print(f'Errors: {len(obj["errors"])}')
+				if 'errors' in cmd:
+					print('\n'.join(obj['errors']), end = '\n')
+				elif 'successes' in cmd:
+					print('\n'.join(obj['successes']), end = '\n')
+				elif obj['stats']:
+					print('\n'.join(obj['stats']), end = '\n')
 
 
 	def show_all_configs(self):
@@ -134,8 +161,8 @@ class CLI:
 			print('\n\n')
 
 
-	def change_config(self):
-		index = self.get_index_from_user()
+	def change_config(self, cmd):
+		index = self.get_index_from_command(cmd)
 		if index == None:
 			return
 
@@ -262,7 +289,7 @@ class CLI:
 
 
 	def delete_object(self):
-		index = self.get_index_from_user()
+		index = self.get_index_from_command(cmd)
 		if index == None:
 			return
 
@@ -356,6 +383,20 @@ class CLI:
 		return None
 
 
+	def get_index_from_command(self, cmd):
+		if len(cmd) < 2:
+			print('Label or index not specified')
+			return
+		if cmd[1] not in self.labels:
+			if not cmd[1].isnumeric() or len(self.objects) <= int(cmd[1]) < 0:
+				print('Label or index not specified appropriatly')
+				return
+
+			return int(cmd[1])
+		else:
+			return self.labels.index(cmd[1])
+
+
 	def get_choice(self, lst, ask_string='Enter your choice', attempts=True, show_all_variants=True):
 		if len(lst) == 0:
 			return None
@@ -411,9 +452,19 @@ class CLI:
 
 	def string_completer(self, text, state):
 		commands = list(self.current_commands)
+		buffer = readline.get_line_buffer().split(' ')
+
+		if self.state == 'main_menu':
+			if len(buffer) == 2:
+				if buffer[0] in self.commands_with_labels:
+					commands = self.labels
+				elif buffer[0] == 'show_all_stats':
+					commands = ['errors', 'successes']
+			elif len(buffer) == 3:
+				if buffer[0] == 'show_stat_of_certain_object':
+					commands = ['errors', 'successes']
 
 		if self.state == 'change_config':
-			buffer = readline.get_line_buffer().split(' ')
 			#buffer = list(filter(('').__ne__, buffer))
 
 			if len(buffer) == 2:
