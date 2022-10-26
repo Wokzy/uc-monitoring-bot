@@ -32,7 +32,11 @@ class CLI:
 			self.encoding = data['ENCODING']
 		else:
 			self.encoding = 'utf-8'
-			ip, port = input('Enter CLI Server address (ip:port) -> ').split(':')
+			if len(sys.argv) == 3:
+				ip = sys.argv[1]
+				port = sys.argv[2]
+			else:
+				ip, port = input('Enter CLI Server address (ip:port) -> ').split(':')
 			port = int(port)
 			self.server_address = (ip, port)
 
