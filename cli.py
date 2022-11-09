@@ -53,11 +53,17 @@ class CLI:
 		while self.update_objects() == 0:
 			pass
 
-		self.labels = [obj['LABEL'] for obj in self.objects]
 
 		while True:
+
 			self.current_commands = [key for key in main_menu]
 			self.state = 'main_menu'
+
+			if self.update_objects() == 0:
+				continue
+
+			self.labels = [obj['LABEL'] for obj in self.objects]
+
 			command = self.get_commnand().split(' ')
 
 			if command[0] not in main_menu:
@@ -71,11 +77,14 @@ class CLI:
 			else:
 				main_menu[command[0]]()
 
+			self.labels = [obj['LABEL'] for obj in self.objects]
+
 
 	def update_objects(self):
 		info = {'reason':'show_all_configs'}
 		self.sock.send(self.prepare_object_to_sending(info))
 		self.objects = self.get_information()
+		self.labels = [obj['LABEL'] for obj in self.objects]
 
 		if self.objects == None:
 			self.objects = []
