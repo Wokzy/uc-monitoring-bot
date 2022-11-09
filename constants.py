@@ -11,21 +11,25 @@ CONFIG_PATH = 'config.json'
 if CONFIG_PATH not in os.listdir():
 	CONFIG_PATH = '/etc/uc_monitoring_bot_config.json'
 
-with open(CONFIG_PATH, 'r') as f:
-	file = json.load(f)
-	f.close()
+try:
+	with open(CONFIG_PATH, 'r') as f:
+		file = json.load(f)
+		f.close()
 
-CLI_IP = file['CLI']['CLI_IP']
-CLI_PORT = file['CLI']['CLI_PORT']
+	CLI_IP = file['CLI']['CLI_IP']
+	CLI_PORT = file['CLI']['CLI_PORT']
 
-ENCODING = 'utf-8'
+	ENCODING = 'utf-8'
 
-file = list(file['CHATS_OBJECTS'])
+	file = list(file['CHATS_OBJECTS'])
 
-for i in range(len(file)):
-	file[i]['time_config'] = str(file[i]['time'])
-	file[i]['time'] = set_time_conditions(file[i]['time'])
-	file[i]['LABEL'] = file[i]['LABEL'].replace(' ', "_")
+	for i in range(len(file)):
+		file[i]['time_config'] = str(file[i]['time'])
+		file[i]['time'] = set_time_conditions(file[i]['time'])
+		file[i]['LABEL'] = file[i]['LABEL'].replace(' ', "_")
+except:
+	print(f'smth wrong with config, please check: {CONFIG_PATH}')
+	sys.exit()
 
 OBJECTS = list(file)
 
