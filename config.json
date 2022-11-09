@@ -4,6 +4,7 @@
 },
 "CHATS_OBJECTS":[
 {
+	"LABEL":"Yandex",
 	"URLS":[{"url":"http://ya.ru/", "timeout":5}],
 	"CHATS":[{"ID":"3633825319302469319", "plain_text":"Суточная статистика UC", "type": "GROUP"}],
 	"time":"14:00-17:30 5 * *",
@@ -16,6 +17,7 @@
 	"PORT_UC_ACCESS_LAYER_WEB":
 },
 {
+	"LABEL":"VK",
 	"URLS":[{"url":"http://vk.com/", "timeout":5}],
 	"CHATS":[{"ID":"8372329410731091835", "plain_text":"Суточная статистика UC", "type": "GROUP"}],
 	"time":"13:00-15:00 5 * *",
