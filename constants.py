@@ -1,10 +1,17 @@
+import os
 import sys
 import json
 
 from datetime import datetime, timedelta
 from util import set_time_conditions, weekdays, check_arg
 
-with open('config.json', 'r') as f:
+
+CONFIG_PATH = 'config.json'
+
+if CONFIG_PATH not in os.listdir():
+	CONFIG_PATH = '/etc/uc_monitoring_bot_config.json'
+
+with open(CONFIG_PATH, 'r') as f:
 	file = json.load(f)
 	f.close()
 

@@ -189,7 +189,7 @@ class CLIThread(threading.Thread):
             if 'STATS' in cfg['CHATS_OBJECTS'][index]:
                 del cfg['CHATS_OBJECTS'][index]['STATS']
 
-            f = open('config.json', 'w')
+            f = open(CONFIG_PATH, 'w')
             json.dump(cfg, f)
             f.close()
 
@@ -240,7 +240,7 @@ class CLIThread(threading.Thread):
 
 
     def load_config(self):
-        f = open('config.json', 'r')
+        f = open(CONFIG_PATH, 'r')
         cfg = json.load(f)
         old_cfg = dict(cfg)
         f.close()
@@ -249,7 +249,7 @@ class CLIThread(threading.Thread):
 
 
     def dump_config(self, cfg):
-        f = open('config.json', 'w')
+        f = open(CONFIG_PATH, 'w')
         json.dump(cfg, f)
         f.close()
 
