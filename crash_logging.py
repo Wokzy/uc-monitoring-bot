@@ -1,14 +1,19 @@
 import os
 import sys
 import time
+import pathlib
 import traceback
 
 from util import check_arg
 from constants import CRASH_LOGS_DIRECTORY, STOP_PROGRAMM_AFTER_CRASH, CRASH_LOGS_FILE_FORMAT
 
 
-if CRASH_LOGS_DIRECTORY not in os.listdir():
-    os.mkdir(CRASH_LOGS_DIRECTORY)
+def check_directory():
+    if not os.path.exists(CRASH_LOGS_DIRECTORY):
+        pathlib.Path(CRASH_LOGS_DIRECTORY).mkdir(parents=True, exist_ok=True)
+
+
+check_directory()
 
 
 def crash_logging(stop_the_programm=STOP_PROGRAMM_AFTER_CRASH, addition_string=None):
@@ -16,8 +21,7 @@ def crash_logging(stop_the_programm=STOP_PROGRAMM_AFTER_CRASH, addition_string=N
     if check_arg(['--no-crash-log'], sys.argv, return_result=False):
         return
 
-    if CRASH_LOGS_DIRECTORY not in os.listdir():
-        os.mkdir(CRASH_LOGS_DIRECTORY)
+    check_directory()
 
     filename = '_'.join(time.asctime().split(' ')) + CRASH_LOGS_FILE_FORMAT
 

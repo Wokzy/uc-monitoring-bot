@@ -6,7 +6,7 @@ import socket
 import readline
 
 
-CONFIG = 'cli_connection_config.json'
+#CONFIG = 'cli_connection_config.json'
 
 
 class CLI:
@@ -26,19 +26,11 @@ class CLI:
 		readline.set_completer(self.string_completer)
 
 	def load_settings(self):
-		if CONFIG in os.listdir():
-			data = json.load(open(CONFIG))
-			self.server_address = (data['IP'], data['PORT'])
-			self.encoding = data['ENCODING']
-		else:
 			self.encoding = 'utf-8'
 			if len(sys.argv) == 3:
-				ip = sys.argv[1]
-				port = sys.argv[2]
+				self.server_address = (sys.argv[1], int(sys.argv[2]))
 			else:
-				ip, port = input('Enter CLI Server address (ip:port) -> ').split(':')
-			port = int(port)
-			self.server_address = (ip, port)
+				self.server_address = ('127.0.0.1', 45673)
 
 
 	def main(self):
@@ -371,6 +363,9 @@ class CLI:
 
 		if parse and ('[' in info or '{' in info):
 			try:
+				info = info.replace('True', '1')
+				info = info.replace('False', '0')
+				info = info.replace('None', 'null')
 				return json.loads(info)
 			except json.decoder.JSONDecodeError:
 				print(info)
@@ -525,4 +520,14 @@ class CLI:
 		print(f'Bad interpretation {string}')
 
 
-CLI().main()
+def handle_help():
+	string = \
+			f'\t{sys.argv[0]} [MonitoringBot IP] [MonitoringBot PORT] Usage:\n\n' + \
+			'If IP or PORT is not specified, 127.0.0.1:45673 is used by default\n\n' + \
+			'--help, h   | show this message\n'
+	print(string)
+
+if '--help' in sys.argv or '-h' in sys.argv:
+	handle_help()
+else:
+	CLI().main()

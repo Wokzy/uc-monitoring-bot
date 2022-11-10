@@ -1,15 +1,23 @@
 import os
 import sys
 import json
+import shutil
 
 from datetime import datetime, timedelta
 from util import set_time_conditions, weekdays, check_arg
 
 
-CONFIG_PATH = 'config.json'
+#CONFIG_PATH = 'config.json'
 
-if CONFIG_PATH not in os.listdir():
-	CONFIG_PATH = '/etc/uc_monitoring_bot_config.json'
+#if CONFIG_PATH not in os.listdir():
+CONFIG_FOLDER = '/etc/monitoring_bot'
+CONFIG_PATH = f'{CONFIG_FOLDER}/monitoring_bot_config.json'
+if not os.path.exists(CONFIG_PATH):
+	if not os.path.exists(CONFIG_FOLDER):
+		print(f'{CONFIG_PATH} not found, trying to load config from current directory(config.json)')
+		CONFIG_PATH = 'config.json'
+	else:
+		shutil.copy(f'{CONFIG_FOLDER}/config_sample.json', CONFIG_PATH)
 
 try:
 	with open(CONFIG_PATH, 'r') as f:
@@ -36,7 +44,7 @@ OBJECTS = list(file)
 SCREENSHOTPATH = '.'
 SCREENSHOTFILENAME = 'scrn.png'
 SCREENSHOTFILETYPE = 'image/png'
-CRASH_LOGS_DIRECTORY = 'crash_logs'
+CRASH_LOGS_DIRECTORY = '/var/log/monitoring_bot/crash_logs'
 CRASH_LOGS_FILE_FORMAT = '.txt'
 STATS_LIMIT = 5
 
