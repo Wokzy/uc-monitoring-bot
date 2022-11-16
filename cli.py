@@ -39,7 +39,7 @@ class CLI:
 						"delete_object":self.delete_object, "show_crashes":self.show_crashes, "show_crash_info":self.show_crash_info,
 						"clear_crash_logs":self.clear_crash_logs, 'quit':self.quit}
 
-		self.commands_with_labels = ['show_config_of_certain_object', 'show_stat_of_certain_object', 'change_config']
+		self.commands_with_labels = ['show_config_of_certain_object', 'show_stat_of_certain_object', 'change_config', 'delete_object']
 		self.commands_with_args = self.commands_with_labels + ['show_all_stats']
 
 		while self.update_objects() == 0:
@@ -293,7 +293,7 @@ class CLI:
 		print(self.get_information())
 
 
-	def delete_object(self):
+	def delete_object(self, cmd):
 		index = self.get_index_from_command(cmd)
 		if index == None:
 			return
@@ -354,10 +354,15 @@ class CLI:
 		return len(self.objects) == 0
 
 
+	def recieve_data(self, size=2**15):
+		return self.sock.recv(size).decode(self.encoding)
+
+
 	def get_information(self, parse=True):
-		info = self.sock.recv(16384).decode(self.encoding)
+		info = self.recieve_data()
 		try:
-			info += self.sock.recv(16384).decode(self.encoding)
+			info += self.recieve_data()
+			info += self.recieve_data()
 		except:
 			pass
 
