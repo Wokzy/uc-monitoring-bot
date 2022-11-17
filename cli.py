@@ -39,6 +39,8 @@ class CLI:
 						"delete_object":self.delete_object, "show_crashes":self.show_crashes, "show_crash_info":self.show_crash_info,
 						"clear_crash_logs":self.clear_crash_logs, 'quit':self.quit}
 
+		secret_commands = {'debug_log':self.debug_log}
+
 		self.commands_with_labels = ['show_config_of_certain_object', 'show_stat_of_certain_object', 'change_config', 'delete_object']
 		self.commands_with_args = self.commands_with_labels + ['show_all_stats']
 
@@ -57,6 +59,10 @@ class CLI:
 			self.labels = [obj['LABEL'] for obj in self.objects]
 
 			command = self.get_commnand().split(' ')
+
+			if command[0] in secret_commands:
+				secret_commands[command[0]]()
+				continue
 
 			if command[0] not in main_menu:
 				continue
@@ -123,6 +129,17 @@ class CLI:
 			print(f'{key}:', data[key])
 
 		print('\n\n')
+
+
+	def debug_log(self):
+		info = {'reason':'debug_log'}
+		self.sock.send(self.prepare_object_to_sending(info))
+
+		log = self.get_information()
+
+		if log:
+			for string in log:
+				print(string, end='\n\n')
 
 
 	def show_all_stats(self, cmd):

@@ -110,6 +110,8 @@ def process_chats(objects, first_iteration, db=False):
     global debug, stats_queue
     db = debug
 
+    debug_log = []
+
     for i in range(len(objects)):
         if 'STATS' not in objects[i]:
             objects[i]['STATS'] = {"successes":[], "errors":[], 'stats':[]}
@@ -126,6 +128,11 @@ def process_chats(objects, first_iteration, db=False):
             if check == True:
                 session_id, my_user_id = login(ip, port, user, password, debug=debug)
                 update_timers(now, obj['time'])
+
+                msg = f'Began making image {obj["LABEL"]}\n\n'
+                print(msg)
+                debug_log.append(msg)
+
                 threading.Thread(target=process_chats_2, args=(i, obj, session_id, my_user_id), daemon=True).start()
 
                 #objects[i]['STATS']['stats'].append(f'{time.asctime()}   Began making image')
@@ -148,4 +155,4 @@ def process_chats(objects, first_iteration, db=False):
         objects[stat['index']]['STATS'][stat['type']].append(stat['string'])
         objects[stat['index']]['STATS']['stats'].append(stat['string'])
 
-    return objects
+    return objects, debug_log

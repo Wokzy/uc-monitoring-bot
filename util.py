@@ -68,7 +68,7 @@ def datetime_in_conditions(time, conditions): # Time means current time
     if 'weekdays' in conditions and time.weekday() not in conditions['weekdays']:
         return False
     elif 'day' in conditions:
-        if time < conditions['day']:
+        if time.replace(second=59) < conditions['day']:
             return False
 
     if 'schedule' in conditions:

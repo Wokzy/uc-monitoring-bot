@@ -23,6 +23,8 @@ class CLIThread(threading.Thread):
 
         self.requests = {}
 
+        self.debug_log = []
+
 
     def accept_connection(self, s):
         conn, addr = s.accept()
@@ -83,6 +85,8 @@ class CLIThread(threading.Thread):
                         self.show_crash_info(s, data['payload'])
                     elif data['reason'] == 'clear_crash_logs':
                         self.clear_crash_logs(s)
+                    elif data['reason'] == 'debug_log':
+                        self.show_debug_log(s)
 
                     del self.requests[s]
 
@@ -107,6 +111,11 @@ class CLIThread(threading.Thread):
 
     def show_config(self, s, index):
         s.sendall(util.prepare_object_to_sending(ENCODING, self.get_config(index)))
+
+
+    def show_debug_log(self, s):
+        self.debug_log = self.debug_log[::-1][:10:][::-1]
+        s.sendall(util.prepare_object_to_sending(ENCODING, self.debug_log))
 
 
     def show_all_configs(self, s):

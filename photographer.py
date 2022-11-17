@@ -83,6 +83,25 @@ def fullpage_screenshot(driver, element=None):
         return stitched_image, total_height, total_width
 
 
+def we_are_logginned_into_grafana():
+    try:
+        WebDriverWait(driver=driver, timeout=1).until(EC.presence_of_element_located((By.XPATH, GRAFANA_LOGIN_FIELD_XPATH)))
+        return False
+        #return True
+    except:
+        return True
+
+
+
+def login_to_grafana(driver, username, password):
+    WebDriverWait(driver=driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, GRAFANA_LOGIN_FIELD_XPATH)))
+    driver.find_element_by_xpath(GRAFANA_LOGIN_FIELD_XPATH).send_keys(username)
+    driver.find_element_by_xpath(GRAFANA_PASSWORD_FIELD_XPATH).send_keys(password)
+    driver.find_element_by_xpath(GRAFANA_LOGIN_BUTTON_XPATH).click()
+    WebDriverWait(driver=driver, timeout=10).until(lambda x: x.execute_script("return document.readyState === 'complete'"))
+    time.sleep(5)
+
+
 def make_screen(urls, screenshot_filename, grafana=None):
     opts = FirefoxOptions()
     opts.add_argument("--headless")
@@ -91,13 +110,13 @@ def make_screen(urls, screenshot_filename, grafana=None):
     driver.get(urls[0]['url'])
 
     if grafana:
-        username = grafana['LOGIN']
-        password = grafana['PASSWORD']
-        driver.find_element_by_xpath('//*[@id="reactRoot"]/div/main/div[3]/div/div[2]/div/div/form/div[1]/div[2]/div/div/input').send_keys(username)
-        driver.find_element_by_xpath('//*[@id="current-password"]').send_keys(password)
-        driver.find_element_by_xpath('//*[@id="reactRoot"]/div/main/div[3]/div/div[2]/div/div/form/button').click()
-        WebDriverWait(driver=driver, timeout=10).until(lambda x: x.execute_script("return document.readyState === 'complete'"))
-        time.sleep(5)
+        login_to_grafana(driver=driver, username = grafana['LOGIN'], password = grafana['PASSWORD'])
+        attempts = 5
+        while not we_are_logginned_into_grafana():
+            if attempts <= 0:
+                raise TimeoutError(f'All {attempts} attempts of login to grafana were not successfull')
+            login_to_grafana(driver=driver, username = grafana['LOGIN'], password = grafana['PASSWORD'])
+            attempts -= 1
 
     total_height = 0
     images = []

@@ -27,7 +27,9 @@ def main():
     while True:
         try:
             if cli.objects:
-                res = process_chats(cli.objects, first_iteration, util.debug)
+                res, debug_log = process_chats(cli.objects, first_iteration, util.debug)
+                cli.debug_log += debug_log
+
                 labels = [obj['LABEL'] for obj in cli.objects]
                 for i in range(len(res)):
                     if res[i]['LABEL'] in labels:
