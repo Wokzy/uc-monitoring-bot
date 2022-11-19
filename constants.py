@@ -10,8 +10,8 @@ from util import set_time_conditions, weekdays, check_arg
 #CONFIG_PATH = 'config.json'
 
 #if CONFIG_PATH not in os.listdir():
-CONFIG_FOLDER = '/etc/monitoring_bot' #'./'
-CONFIG_PATH = f'{CONFIG_FOLDER}/monitoring_bot_config.json' # config.json
+CONFIG_FOLDER = '.' #'./'
+CONFIG_PATH = f'{CONFIG_FOLDER}/config.json' # config.json
 if not os.path.exists(CONFIG_PATH):
 	if not os.path.exists(CONFIG_FOLDER):
 		print(f'{CONFIG_PATH} not found, trying to load config from current directory(config.json)')
@@ -36,7 +36,8 @@ try:
 		file[i]['time'] = set_time_conditions(file[i]['time'])
 		file[i]['LABEL'] = file[i]['LABEL'].replace(' ', "_")
 		file[i]['GRAFANA'] = int(file[i]['GRAFANA'])
-except:
+except Exception as e:
+	print(e)
 	print(f'smth wrong with config, please check: {CONFIG_PATH}')
 	sys.exit()
 
@@ -51,7 +52,7 @@ GRAFANA_LOGIN_BUTTON_XPATH = '//*[@id="reactRoot"]/div/main/div[3]/div/div[2]/di
 SCREENSHOTPATH = '.'
 SCREENSHOTFILENAME = 'scrn.png'
 SCREENSHOTFILETYPE = 'image/png'
-CRASH_LOGS_DIRECTORY = '/var/log/monitoring_bot/crash_logs' #'crash_logs'
+CRASH_LOGS_DIRECTORY = 'crash_logs' #'crash_logs'
 CRASH_LOGS_FILE_FORMAT = '.txt'
 STATS_LIMIT = 5
 

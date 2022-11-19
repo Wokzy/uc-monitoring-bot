@@ -63,12 +63,14 @@ def update_timers(now, conditions):
     if 'minutes' in conditions:
         conditions['range_timer'] = now + conditions['minutes']
 
+    return conditions
+
 
 def datetime_in_conditions(time, conditions): # Time means current time
     if 'weekdays' in conditions and time.weekday() not in conditions['weekdays']:
         return False
     elif 'day' in conditions:
-        if time.replace(second=59) < conditions['day']:
+        if time < conditions['day']:
             return False
 
     if 'schedule' in conditions:
@@ -88,10 +90,12 @@ def update_conditions(now, conditions):
         del conditions['range_timer']
 
     if 'weekdays' in conditions:
-        return
+        return conditions
 
     if now.day > conditions['day'].day:
         conditions['day'] += conditions['every_days']
+
+    return conditions
 
 
 def to_hours(hour_string):
@@ -140,7 +144,7 @@ def set_time_conditions(time_string):
         if time[2] == '*':
             time[2] = 1
         conditions['every_days'] = timedelta(days=int(time[2]))
-        conditions['day'] = datetime.now()
+        conditions['day'] = datetime.now().replace(hour=0, minute=0, second=0)
 
     conditions['schedule'] = schedule
 

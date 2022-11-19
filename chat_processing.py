@@ -127,17 +127,18 @@ def process_chats(objects, first_iteration, db=False):
             check = datetime_in_conditions(now, conditions=obj['time'])
             if check == True:
                 session_id, my_user_id = login(ip, port, user, password, debug=debug)
-                update_timers(now, obj['time'])
+                obj['time'] = update_timers(now, obj['time'])
 
+                '''
                 msg = f'Began making image {obj["LABEL"]}\n\n'
                 print(msg)
                 debug_log.append(msg)
-
+                '''
                 threading.Thread(target=process_chats_2, args=(i, obj, session_id, my_user_id), daemon=True).start()
 
                 #objects[i]['STATS']['stats'].append(f'{time.asctime()}   Began making image')
             elif check == False:
-                update_conditions(now, obj['time'])
+                obj['time'] = update_conditions(now, obj['time'])
 
     while not stats_queue.empty():
         stat = stats_queue.get()

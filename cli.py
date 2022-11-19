@@ -39,7 +39,7 @@ class CLI:
 						"delete_object":self.delete_object, "show_crashes":self.show_crashes, "show_crash_info":self.show_crash_info,
 						"clear_crash_logs":self.clear_crash_logs, 'quit':self.quit}
 
-		secret_commands = {'debug_log':self.debug_log}
+		secret_commands = {} #{'debug_log':self.debug_log}
 
 		self.commands_with_labels = ['show_config_of_certain_object', 'show_stat_of_certain_object', 'change_config', 'delete_object']
 		self.commands_with_args = self.commands_with_labels + ['show_all_stats']
